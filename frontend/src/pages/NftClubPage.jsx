@@ -1098,8 +1098,8 @@ export default function NftClubPage() {
                   >
                     <WalletSvgIcon size={14} /> CONNECT WALLET TO MINT
                   </button>
-                ) : hasMinted ? (
-                  /* ALREADY MINTED */
+                ) : (hasMinted && !isAdmin) ? (
+                  /* ALREADY MINTED (REGULAR USERS ONLY) */
                   <div style={{
                     width: '100%',
                     padding: '14px',
@@ -2058,7 +2058,7 @@ export default function NftClubPage() {
               )}
             </div>
 
-            {/* ── ADMIN NFT MINT & GIVEAWAY SECTION ── */}
+            {/* ── ADMIN NFT MINT SECTION ── */}
             <div style={{
               marginTop: '20px',
               paddingTop: '16px',
@@ -2073,7 +2073,7 @@ export default function NftClubPage() {
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                <span>🎁</span> ADMIN NFT MINT & GIVEAWAY TOOLS
+                <span>🎁</span> ADMIN NFT MINT (FULL PHASE PRICE)
               </div>
               <p style={{
                 fontFamily: 'var(--vv-pixel)',
@@ -2083,192 +2083,50 @@ export default function NftClubPage() {
                 marginBottom: '14px',
                 textTransform: 'uppercase'
               }}>
-                Mint NFTs directly with your Admin wallet (bypasses 1/1 per-wallet limit) to your address or directly to giveaway winners.
+                Mint NFTs at standard phase price (bypasses 1/1 per-wallet limit for Admin). 80% auto-burns $VIBE and 20% goes into the Community Rewards Pool.
               </p>
 
-              {/* DIRECT ADMIN MINT (FREE) */}
-              <div style={{
-                background: 'rgba(2, 11, 26, 0.6)',
-                border: '1px solid rgba(0, 245, 255, 0.3)',
-                borderRadius: '10px',
-                padding: '12px',
-                marginBottom: '12px'
-              }}>
-                <div style={{
-                  fontFamily: 'var(--vv-pixel)',
-                  fontSize: '8px',
-                  color: '#ffd700',
-                  marginBottom: '10px'
-                }}>
-                  👑 1. DIRECT FREE MINT (SPECIFY TOKEN ID & RECIPIENT):
-                </div>
-
-                <div style={{
-                  display: 'flex',
-                  gap: '8px',
-                  flexDirection: 'column',
-                  marginBottom: '10px'
-                }}>
-                  <div>
-                    <div style={{ fontSize: '7px', color: '#88aacc', fontFamily: 'var(--vv-pixel)', marginBottom: '4px' }}>
-                      RECIPIENT ADDRESS (LEAVE EMPTY TO MINT TO YOUR ADMIN WALLET):
-                    </div>
-                    <input
-                      type="text"
-                      value={adminMintRecipient}
-                      onChange={(e) => setAdminMintRecipient(e.target.value)}
-                      placeholder={walletAddress || '0x... (Recipient Address)'}
-                      style={{
-                        width: '100%',
-                        background: 'rgba(2, 11, 26, 0.9)',
-                        border: '1px solid #00f5ff',
-                        borderRadius: '8px',
-                        color: '#00f5ff',
-                        fontFamily: 'var(--vv-pixel)',
-                        fontSize: '8px',
-                        padding: '8px 10px',
-                        outline: 'none',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <div style={{ fontSize: '7px', color: '#88aacc', fontFamily: 'var(--vv-pixel)', marginBottom: '4px' }}>
-                      TOKEN ID (1 - 333):
-                    </div>
-                    <input
-                      type="number"
-                      min="1"
-                      max="333"
-                      value={adminMintTokenId}
-                      onChange={(e) => setAdminMintTokenId(e.target.value)}
-                      placeholder="104"
-                      style={{
-                        width: '100%',
-                        background: 'rgba(2, 11, 26, 0.9)',
-                        border: '1px solid #ffd700',
-                        borderRadius: '8px',
-                        color: '#ffd700',
-                        fontFamily: 'var(--vv-pixel)',
-                        fontSize: '9px',
-                        padding: '8px 10px',
-                        outline: 'none',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-                </div>
-
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <button
-                  onClick={() => executeAdminDirectMint(adminMintRecipient, adminMintTokenId)}
-                  disabled={isAdminDirectMinting || isMintingEth || isMintingVibe || !adminMintTokenId}
+                  onClick={mintWithETH}
+                  disabled={isMintingEth || isMintingVibe || isApprovingVibe}
                   style={{
-                    width: '100%',
-                    height: '38px',
+                    height: '42px',
                     fontFamily: 'var(--vv-pixel)',
-                    fontSize: '9px',
+                    fontSize: '8.5px',
                     fontWeight: 900,
-                    background: 'linear-gradient(135deg, #00f5ff 0%, #00ff88 100%)',
-                    border: '2px solid #ffffff',
-                    borderRadius: '8px',
-                    color: '#020b1a',
-                    cursor: (isAdminDirectMinting || isMintingEth || isMintingVibe || !adminMintTokenId) ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 0 16px rgba(0, 255, 136, 0.35)',
-                    textTransform: 'uppercase'
+                    background: 'linear-gradient(135deg, #00f5ff 0%, #0050ff 100%)',
+                    border: '1.5px solid #ffffff',
+                    borderRadius: '10px',
+                    color: '#ffffff',
+                    cursor: (isMintingEth || isMintingVibe || isApprovingVibe) ? 'not-allowed' : 'pointer',
+                    textTransform: 'uppercase',
+                    boxShadow: '0 0 14px rgba(0, 245, 255, 0.3)'
                   }}
                 >
-                  {isAdminDirectMinting ? '⏳ MINTING DIRECTLY ON BASE...' : `👑 FREE ADMIN MINT NFT #${adminMintTokenId || '?'}`}
+                  {isMintingEth ? 'MINTING ON BASE...' : `MINT WITH ETH (${ethPriceFormatted} ETH)`}
+                </button>
+
+                <button
+                  onClick={handleMintWithVibeClick}
+                  disabled={isMintingEth || isMintingVibe || isApprovingVibe}
+                  style={{
+                    height: '42px',
+                    fontFamily: 'var(--vv-pixel)',
+                    fontSize: '8.5px',
+                    fontWeight: 900,
+                    background: 'linear-gradient(135deg, #ffd700 0%, #ff6b35 100%)',
+                    border: '1.5px solid #ffffff',
+                    borderRadius: '10px',
+                    color: '#ffffff',
+                    cursor: (isMintingEth || isMintingVibe || isApprovingVibe) ? 'not-allowed' : 'pointer',
+                    textTransform: 'uppercase',
+                    boxShadow: '0 0 14px rgba(255, 215, 0, 0.3)'
+                  }}
+                >
+                  {isApprovingVibe ? 'APPROVING $VIBE...' : isMintingVibe ? 'MINTING WITH $VIBE...' : `MINT FOR ${formatVibeComma(currentDynamicVibeAmount)}`}
                 </button>
               </div>
-
-              {/* ADMIN PUBLIC PHASE MINTING (WITH ETH OR VIBE) */}
-              <div style={{
-                background: 'rgba(2, 11, 26, 0.6)',
-                border: '1px solid rgba(255, 215, 0, 0.3)',
-                borderRadius: '10px',
-                padding: '12px'
-              }}>
-                <div style={{
-                  fontFamily: 'var(--vv-pixel)',
-                  fontSize: '8px',
-                  color: '#ffd700',
-                  marginBottom: '10px'
-                }}>
-                  🎲 2. RANDOM MINT (CURRENT PHASE PRICE, UNLIMITED FOR ADMIN):
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <button
-                    onClick={mintWithETH}
-                    disabled={isMintingEth || isMintingVibe || isApprovingVibe || isAdminDirectMinting}
-                    style={{
-                      height: '38px',
-                      fontFamily: 'var(--vv-pixel)',
-                      fontSize: '8px',
-                      fontWeight: 900,
-                      background: 'linear-gradient(135deg, #00f5ff 0%, #0050ff 100%)',
-                      border: '1.5px solid #ffffff',
-                      borderRadius: '8px',
-                      color: '#ffffff',
-                      cursor: (isMintingEth || isMintingVibe || isApprovingVibe || isAdminDirectMinting) ? 'not-allowed' : 'pointer',
-                      textTransform: 'uppercase',
-                      boxShadow: '0 0 12px rgba(0, 245, 255, 0.25)'
-                    }}
-                  >
-                    {isMintingEth ? 'MINTING...' : `MINT WITH ETH (${ethPriceFormatted} ETH)`}
-                  </button>
-
-                  <button
-                    onClick={handleMintWithVibeClick}
-                    disabled={isMintingEth || isMintingVibe || isApprovingVibe || isAdminDirectMinting}
-                    style={{
-                      height: '38px',
-                      fontFamily: 'var(--vv-pixel)',
-                      fontSize: '8px',
-                      fontWeight: 900,
-                      background: 'linear-gradient(135deg, #ffd700 0%, #ff6b35 100%)',
-                      border: '1.5px solid #ffffff',
-                      borderRadius: '8px',
-                      color: '#ffffff',
-                      cursor: (isMintingEth || isMintingVibe || isApprovingVibe || isAdminDirectMinting) ? 'not-allowed' : 'pointer',
-                      textTransform: 'uppercase',
-                      boxShadow: '0 0 12px rgba(255, 215, 0, 0.25)'
-                    }}
-                  >
-                    {isMintingVibe ? 'MINTING...' : `MINT WITH $VIBE`}
-                  </button>
-                </div>
-              </div>
-
-              {/* Status messages for Admin Direct Mint */}
-              {adminMintSuccess && (
-                <div style={{
-                  marginTop: '12px',
-                  padding: '10px',
-                  background: 'rgba(0, 255, 136, 0.15)',
-                  border: '1px solid #00ff88',
-                  borderRadius: '8px',
-                  color: '#00ff88',
-                  fontFamily: 'var(--vv-pixel)',
-                  fontSize: '8px',
-                  lineHeight: 1.6
-                }}>
-                  🎉 NFT #{adminMintedTokenId} SUCCESSFULLY MINTED FOR {adminMintRecipient || 'ADMIN WALLET'}!
-                  {adminTxHash && (
-                    <div style={{ marginTop: '4px' }}>
-                      <a
-                        href={`https://basescan.org/tx/${adminTxHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: '#00f5ff', textDecoration: 'underline' }}
-                      >
-                        VIEW TRANSACTION ON BASESCAN ↗
-                      </a>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         )}
