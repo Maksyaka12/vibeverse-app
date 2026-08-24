@@ -1098,8 +1098,8 @@ export default function NftClubPage() {
                   >
                     <WalletSvgIcon size={14} /> CONNECT WALLET TO MINT
                   </button>
-                ) : (hasMinted && !isAdmin) ? (
-                  /* ALREADY MINTED (REGULAR USERS ONLY) */
+                ) : hasMinted ? (
+                  /* ALREADY MINTED */
                   <div style={{
                     width: '100%',
                     padding: '14px',
