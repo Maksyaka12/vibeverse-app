@@ -119,8 +119,18 @@ export default function NftClubPage() {
   const ethPriceNum = parseFloat(ethPriceFormatted) || 0.005;
   const currentDynamicVibeAmount = Math.floor(ethPriceNum * vibePerEthRatio);
 
-  // Exact on-chain burned $VIBE (0 if swap hasn't executed yet)
-  const totalVibeBurnedByContract = totalOnChainVibeBurned;
+  // Cumulative total $VIBE burned across ALL phases (Phase 1 + Phase 2 + Phase 3 + Phase 4, 80% burned)
+  const p1Minted = Math.min(totalMinted, 103);
+  const p2Minted = Math.max(0, Math.min(totalMinted - 103, 100));
+  const p3Minted = Math.max(0, Math.min(totalMinted - 203, 100));
+  const p4Minted = Math.max(0, totalMinted - 303);
+
+  const p1Burn = p1Minted * (0.005 * vibePerEthRatio) * 0.8;
+  const p2Burn = p2Minted * (0.015 * vibePerEthRatio) * 0.8;
+  const p3Burn = p3Minted * (0.05 * vibePerEthRatio) * 0.8;
+  const p4Burn = p4Minted * (0.1 * vibePerEthRatio) * 0.8;
+
+  const totalVibeBurnedByContract = Math.floor(p1Burn + p2Burn + p3Burn + p4Burn);
 
   const currentNftId = NFT_DECK[deckIndex];
 
