@@ -34,10 +34,12 @@ const NFT_ABI = parseAbi([
   'function walletMintCount(address) view returns (uint256)',
   'function getRemainingTokens() view returns (uint256)',
   'function aggregatorRouter() view returns (address)',
+  'function isTokenMinted(uint256 tokenId) view returns (bool)',
   'function mintWithETH() payable',
   'function mintWithETHAndSwap(bytes swapData) payable',
   'function mintWithVIBE(uint256 vibeAmount) external',
   'function mintWithVIBE() external',
+  'function adminMint(address to, uint256 tokenId) external',
   'function adminSwapAndBurn(uint256 ethAmount, bytes customSwapCalldata) external',
   'function setAggregatorRouter(address _newAggregator) external',
   'function withdrawETH() external',
@@ -507,6 +509,51 @@ export function useVibeNftContract() {
     }
   };
 
+  // 6. Admin Direct Mint (Free - specify recipient & tokenId)
+  const [isAdminDirectMinting, setIsAdminDirectMinting] = useState(false);
+  const [adminMintSuccess, setAdminMintSuccess] = useState(false);
+  const [adminMintedTokenId, setAdminMintedTokenId] = useState(null);
+
+  const executeAdminDirectMint = async (recipientAddress, tokenId) => {
+    if (!authenticated || !walletAddress) {
+      login();
+      return;
+    }
+    setErrorMessage('');
+    setAdminMintSuccess(false);
+    setIsAdminDirectMinting(true);
+    setAdminTxHash('');
+
+    try {
+      const to = (recipientAddress && recipientAddress.trim().length > 0) ? recipientAddress.trim() : walletAddress;
+      const tId = BigInt(tokenId);
+
+      const dataHex = encodeFunctionData({
+        abi: NFT_ABI,
+        functionName: 'adminMint',
+        args: [to, tId]
+      });
+
+      const hash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, BigInt(0), withBuilderCode(dataHex), '0x7A120');
+      setAdminTxHash(hash);
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status === 'success') {
+        setAdminMintedTokenId(Number(tId));
+        setAdminMintSuccess(true);
+        setLastMintedId(Number(tId));
+        await fetchContractState();
+      } else {
+        throw new Error('Admin Mint reverted on Base');
+      }
+    } catch (e) {
+      console.error('Admin Direct Mint failed:', e);
+      setErrorMessage(e?.shortMessage || e?.message || 'Admin Direct Mint failed');
+    } finally {
+      setIsAdminDirectMinting(false);
+    }
+  };
+
   return {
     contractAddress: NFT_CONTRACT_ADDRESS,
     totalMinted,
@@ -531,6 +578,9 @@ export function useVibeNftContract() {
     setRouterSuccess,
     isWithdrawingEth,
     withdrawSuccess,
+    isAdminDirectMinting,
+    adminMintSuccess,
+    adminMintedTokenId,
     txHash,
     lastMintedId,
     errorMessage,
@@ -540,6 +590,7 @@ export function useVibeNftContract() {
     executeAdminSwapAndBurn,
     executeSetAggregatorRouter,
     executeWithdrawEth,
+    executeAdminDirectMint,
     refetch: fetchContractState
   };
 }

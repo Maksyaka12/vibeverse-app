@@ -42,6 +42,9 @@ export default function NftClubPage() {
     setRouterSuccess,
     isWithdrawingEth,
     withdrawSuccess,
+    isAdminDirectMinting,
+    adminMintSuccess,
+    adminMintedTokenId,
     txHash,
     lastMintedId,
     errorMessage,
@@ -50,13 +53,16 @@ export default function NftClubPage() {
     mintWithVIBE,
     executeAdminSwapAndBurn,
     executeSetAggregatorRouter,
-    executeWithdrawEth
+    executeWithdrawEth,
+    executeAdminDirectMint
   } = useVibeNftContract();
 
   const [deckIndex, setDeckIndex] = useState(0);
   const [vibePerEthRatio, setVibePerEthRatio] = useState(50000000); // 1 ETH = ~50M VIBE fallback
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [adminEthInput, setAdminEthInput] = useState('0.005');
+  const [adminMintRecipient, setAdminMintRecipient] = useState('');
+  const [adminMintTokenId, setAdminMintTokenId] = useState('104');
 
   const isAdmin = walletAddress?.toLowerCase() === '0x4c91d3bed372c11795b9ce9a9017dfe447bf050a';
 
@@ -1796,6 +1802,219 @@ export default function NftClubPage() {
                 )}
               </div>
             )}
+
+            {/* ── ADMIN NFT MINT & GIVEAWAY SECTION ── */}
+            <div style={{
+              marginTop: '20px',
+              paddingTop: '16px',
+              borderTop: '1px solid rgba(0, 245, 255, 0.25)'
+            }}>
+              <div style={{
+                fontFamily: 'var(--vv-pixel)',
+                fontSize: '10px',
+                color: '#00f5ff',
+                marginBottom: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span>🎁</span> ADMIN NFT MINT & GIVEAWAY TOOLS
+              </div>
+              <p style={{
+                fontFamily: 'var(--vv-pixel)',
+                fontSize: '7.5px',
+                color: '#a0b5d0',
+                lineHeight: 1.6,
+                marginBottom: '14px',
+                textTransform: 'uppercase'
+              }}>
+                Mint NFTs directly with your Admin wallet (bypasses 1/1 per-wallet limit) to your address or directly to giveaway winners.
+              </p>
+
+              {/* DIRECT ADMIN MINT (FREE) */}
+              <div style={{
+                background: 'rgba(2, 11, 26, 0.6)',
+                border: '1px solid rgba(0, 245, 255, 0.3)',
+                borderRadius: '10px',
+                padding: '12px',
+                marginBottom: '12px'
+              }}>
+                <div style={{
+                  fontFamily: 'var(--vv-pixel)',
+                  fontSize: '8px',
+                  color: '#ffd700',
+                  marginBottom: '10px'
+                }}>
+                  👑 1. DIRECT FREE MINT (SPECIFY TOKEN ID & RECIPIENT):
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  flexDirection: 'column',
+                  marginBottom: '10px'
+                }}>
+                  <div>
+                    <div style={{ fontSize: '7px', color: '#88aacc', fontFamily: 'var(--vv-pixel)', marginBottom: '4px' }}>
+                      RECIPIENT ADDRESS (LEAVE EMPTY TO MINT TO YOUR ADMIN WALLET):
+                    </div>
+                    <input
+                      type="text"
+                      value={adminMintRecipient}
+                      onChange={(e) => setAdminMintRecipient(e.target.value)}
+                      placeholder={walletAddress || '0x... (Recipient Address)'}
+                      style={{
+                        width: '100%',
+                        background: 'rgba(2, 11, 26, 0.9)',
+                        border: '1px solid #00f5ff',
+                        borderRadius: '8px',
+                        color: '#00f5ff',
+                        fontFamily: 'var(--vv-pixel)',
+                        fontSize: '8px',
+                        padding: '8px 10px',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: '7px', color: '#88aacc', fontFamily: 'var(--vv-pixel)', marginBottom: '4px' }}>
+                      TOKEN ID (1 - 333):
+                    </div>
+                    <input
+                      type="number"
+                      min="1"
+                      max="333"
+                      value={adminMintTokenId}
+                      onChange={(e) => setAdminMintTokenId(e.target.value)}
+                      placeholder="104"
+                      style={{
+                        width: '100%',
+                        background: 'rgba(2, 11, 26, 0.9)',
+                        border: '1px solid #ffd700',
+                        borderRadius: '8px',
+                        color: '#ffd700',
+                        fontFamily: 'var(--vv-pixel)',
+                        fontSize: '9px',
+                        padding: '8px 10px',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => executeAdminDirectMint(adminMintRecipient, adminMintTokenId)}
+                  disabled={isAdminDirectMinting || isMintingEth || isMintingVibe || !adminMintTokenId}
+                  style={{
+                    width: '100%',
+                    height: '38px',
+                    fontFamily: 'var(--vv-pixel)',
+                    fontSize: '9px',
+                    fontWeight: 900,
+                    background: 'linear-gradient(135deg, #00f5ff 0%, #00ff88 100%)',
+                    border: '2px solid #ffffff',
+                    borderRadius: '8px',
+                    color: '#020b1a',
+                    cursor: (isAdminDirectMinting || isMintingEth || isMintingVibe || !adminMintTokenId) ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 0 16px rgba(0, 255, 136, 0.35)',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  {isAdminDirectMinting ? '⏳ MINTING DIRECTLY ON BASE...' : `👑 FREE ADMIN MINT NFT #${adminMintTokenId || '?'}`}
+                </button>
+              </div>
+
+              {/* ADMIN PUBLIC PHASE MINTING (WITH ETH OR VIBE) */}
+              <div style={{
+                background: 'rgba(2, 11, 26, 0.6)',
+                border: '1px solid rgba(255, 215, 0, 0.3)',
+                borderRadius: '10px',
+                padding: '12px'
+              }}>
+                <div style={{
+                  fontFamily: 'var(--vv-pixel)',
+                  fontSize: '8px',
+                  color: '#ffd700',
+                  marginBottom: '10px'
+                }}>
+                  🎲 2. RANDOM MINT (CURRENT PHASE PRICE, UNLIMITED FOR ADMIN):
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <button
+                    onClick={mintWithETH}
+                    disabled={isMintingEth || isMintingVibe || isApprovingVibe || isAdminDirectMinting}
+                    style={{
+                      height: '38px',
+                      fontFamily: 'var(--vv-pixel)',
+                      fontSize: '8px',
+                      fontWeight: 900,
+                      background: 'linear-gradient(135deg, #00f5ff 0%, #0050ff 100%)',
+                      border: '1.5px solid #ffffff',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      cursor: (isMintingEth || isMintingVibe || isApprovingVibe || isAdminDirectMinting) ? 'not-allowed' : 'pointer',
+                      textTransform: 'uppercase',
+                      boxShadow: '0 0 12px rgba(0, 245, 255, 0.25)'
+                    }}
+                  >
+                    {isMintingEth ? 'MINTING...' : `MINT WITH ETH (${ethPriceFormatted} ETH)`}
+                  </button>
+
+                  <button
+                    onClick={handleMintWithVibeClick}
+                    disabled={isMintingEth || isMintingVibe || isApprovingVibe || isAdminDirectMinting}
+                    style={{
+                      height: '38px',
+                      fontFamily: 'var(--vv-pixel)',
+                      fontSize: '8px',
+                      fontWeight: 900,
+                      background: 'linear-gradient(135deg, #ffd700 0%, #ff6b35 100%)',
+                      border: '1.5px solid #ffffff',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      cursor: (isMintingEth || isMintingVibe || isApprovingVibe || isAdminDirectMinting) ? 'not-allowed' : 'pointer',
+                      textTransform: 'uppercase',
+                      boxShadow: '0 0 12px rgba(255, 215, 0, 0.25)'
+                    }}
+                  >
+                    {isMintingVibe ? 'MINTING...' : `MINT WITH $VIBE`}
+                  </button>
+                </div>
+              </div>
+
+              {/* Status messages for Admin Direct Mint */}
+              {adminMintSuccess && (
+                <div style={{
+                  marginTop: '12px',
+                  padding: '10px',
+                  background: 'rgba(0, 255, 136, 0.15)',
+                  border: '1px solid #00ff88',
+                  borderRadius: '8px',
+                  color: '#00ff88',
+                  fontFamily: 'var(--vv-pixel)',
+                  fontSize: '8px',
+                  lineHeight: 1.6
+                }}>
+                  🎉 NFT #{adminMintedTokenId} SUCCESSFULLY MINTED FOR {adminMintRecipient || 'ADMIN WALLET'}!
+                  {adminTxHash && (
+                    <div style={{ marginTop: '4px' }}>
+                      <a
+                        href={`https://basescan.org/tx/${adminTxHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#00f5ff', textDecoration: 'underline' }}
+                      >
+                        VIEW TRANSACTION ON BASESCAN ↗
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
