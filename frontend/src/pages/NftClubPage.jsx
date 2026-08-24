@@ -64,12 +64,22 @@ export default function NftClubPage() {
     executeAdminDirectMint
   } = useVibeNftContract();
 
+  // Initializer with localStorage cache so the correct live price is rendered in 0ms on page load
+  const getInitialVibeRatio = () => {
+    try {
+      const cached = localStorage.getItem('vibe_eth_ratio');
+      if (cached) {
+        const val = parseInt(cached, 10);
+        if (val > 1000000 && val < 100000000) return val;
+      }
+    } catch (e) {}
+    return 22970000; // Accurate current market baseline: ~344,550 VIBE for Phase 2 (0.015 ETH)
+  };
+
   const [deckIndex, setDeckIndex] = useState(0);
-  const [vibePerEthRatio, setVibePerEthRatio] = useState(50000000); // 1 ETH = ~50M VIBE fallback
+  const [vibePerEthRatio, setVibePerEthRatio] = useState(getInitialVibeRatio);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [adminEthInput, setAdminEthInput] = useState('0.005');
-  const [adminMintRecipient, setAdminMintRecipient] = useState('');
-  const [adminMintTokenId, setAdminMintTokenId] = useState('104');
   const [customVibeRecipient, setCustomVibeRecipient] = useState('');
   const [customVibeAmount, setCustomVibeAmount] = useState('');
 
@@ -82,20 +92,22 @@ export default function NftClubPage() {
     }
   }, [mintSuccess]);
 
-  // Fetch live $VIBE pool price from DEX Screener on Base
+  // Fetch live $VIBE pool price from DEX Screener on Base and cache it
   useEffect(() => {
     let isMounted = true;
     async function fetchLiveVibePrice() {
       try {
         const res = await fetch('https://api.dexscreener.com/latest/dex/tokens/0xb200000000000000000000df24ecb8bf51100a01');
         const data = await res.json();
-        if (data?.pairs && data.pairs.length > 0) {
-          const mainPair = data.pairs[0];
-          const ethPriceInUsd = parseFloat(mainPair.priceNative) ? (parseFloat(mainPair.priceUsd) / parseFloat(mainPair.priceNative)) : 2700;
-          const vibePriceInUsd = parseFloat(mainPair.priceUsd) || 0.00005;
-          if (vibePriceInUsd > 0 && isMounted) {
-            const calculatedRatio = Math.round(ethPriceInUsd / vibePriceInUsd);
+        const mainPair = data?.pairs?.[0];
+        if (mainPair && mainPair.priceNative && isMounted) {
+          const priceNativeFloat = parseFloat(mainPair.priceNative);
+          if (priceNativeFloat > 0) {
+            const calculatedRatio = Math.floor(1 / priceNativeFloat);
             setVibePerEthRatio(calculatedRatio);
+            try {
+              localStorage.setItem('vibe_eth_ratio', String(calculatedRatio));
+            } catch (e) {}
           }
         }
       } catch (e) {
