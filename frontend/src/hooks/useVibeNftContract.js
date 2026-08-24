@@ -43,13 +43,16 @@ const NFT_ABI = parseAbi([
   'function adminSwapAndBurn(uint256 ethAmount, bytes customSwapCalldata) external',
   'function setAggregatorRouter(address _newAggregator) external',
   'function withdrawETH() external',
+  'function withdrawVIBE() external',
+  'function withdrawERC20(address token) external',
   'function executeManualBurn(uint256 vibeAmount) external'
 ]);
 
 const ERC20_ABI = parseAbi([
   'function allowance(address owner, address spender) view returns (uint256)',
   'function approve(address spender, uint256 amount) returns (bool)',
-  'function balanceOf(address account) view returns (uint256)'
+  'function balanceOf(address account) view returns (uint256)',
+  'function transfer(address to, uint256 amount) returns (bool)'
 ]);
 
 export function useVibeNftContract() {
@@ -67,6 +70,7 @@ export function useVibeNftContract() {
   const [mintCount, setMintCount] = useState(0);
   const [mintLive, setMintLive] = useState(true);
   const [contractEthBalance, setContractEthBalance] = useState('0');
+  const [contractVibeBalance, setContractVibeBalance] = useState('0');
   const [totalOnChainVibeBurned, setTotalOnChainVibeBurned] = useState(0);
   const [aggregatorRouterAddress, setAggregatorRouterAddress] = useState('');
 
@@ -133,6 +137,7 @@ export function useVibeNftContract() {
       setMaxSupply(Number(supply));
       setMintLive(live);
       setContractEthBalance(formatEther(ethBal));
+      setContractVibeBalance(formatEther(contractVibeBal));
       setAggregatorRouterAddress(aggRouter);
 
       // Exact on-chain burned $VIBE: 80% burned to dead address, 20% kept on contract rewards pool => burned = contractVibe * 4
@@ -554,6 +559,92 @@ export function useVibeNftContract() {
     }
   };
 
+  // 7. Admin Withdraw VIBE from contract
+  const [isWithdrawingVibe, setIsWithdrawingVibe] = useState(false);
+  const [withdrawVibeSuccess, setWithdrawVibeSuccess] = useState(false);
+
+  const executeWithdrawVibe = async () => {
+    if (!authenticated || !walletAddress) {
+      login();
+      return;
+    }
+    setErrorMessage('');
+    setWithdrawVibeSuccess(false);
+    setIsWithdrawingVibe(true);
+    setAdminTxHash('');
+
+    try {
+      const dataHex = encodeFunctionData({
+        abi: NFT_ABI,
+        functionName: 'withdrawVIBE'
+      });
+
+      const hash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, BigInt(0), withBuilderCode(dataHex), '0x7A120');
+      setAdminTxHash(hash);
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status === 'success') {
+        setWithdrawVibeSuccess(true);
+        await fetchContractState();
+      } else {
+        throw new Error('Withdraw VIBE reverted on Base');
+      }
+    } catch (e) {
+      console.error('Withdraw VIBE failed:', e);
+      setErrorMessage(e?.shortMessage || e?.message || 'Withdraw VIBE failed');
+    } finally {
+      setIsWithdrawingVibe(false);
+    }
+  };
+
+  // 8. Admin Send VIBE to another wallet (Transfer ERC20)
+  const [isSendingVibe, setIsSendingVibe] = useState(false);
+  const [sendVibeSuccess, setSendVibeSuccess] = useState(false);
+
+  const executeSendVibeToWallet = async (recipientAddress, vibeAmountStr) => {
+    if (!authenticated || !walletAddress) {
+      login();
+      return;
+    }
+    if (!recipientAddress || !recipientAddress.startsWith('0x') || recipientAddress.length !== 42) {
+      setErrorMessage('Please provide a valid 0x recipient address');
+      return;
+    }
+    if (!vibeAmountStr || parseFloat(vibeAmountStr) <= 0) {
+      setErrorMessage('Please provide a valid $VIBE amount');
+      return;
+    }
+    setErrorMessage('');
+    setSendVibeSuccess(false);
+    setIsSendingVibe(true);
+    setAdminTxHash('');
+
+    try {
+      const amountWei = parseEther(vibeAmountStr.toString());
+      const dataHex = encodeFunctionData({
+        abi: ERC20_ABI,
+        functionName: 'transfer',
+        args: [recipientAddress.trim(), amountWei]
+      });
+
+      const hash = await sendWeb3Transaction(VIBE_TOKEN_ADDRESS, BigInt(0), withBuilderCode(dataHex), '0x7A120');
+      setAdminTxHash(hash);
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status === 'success') {
+        setSendVibeSuccess(true);
+        await fetchContractState();
+      } else {
+        throw new Error('Transfer $VIBE reverted on Base');
+      }
+    } catch (e) {
+      console.error('Transfer $VIBE failed:', e);
+      setErrorMessage(e?.shortMessage || e?.message || 'Transfer $VIBE failed');
+    } finally {
+      setIsSendingVibe(false);
+    }
+  };
+
   return {
     contractAddress: NFT_CONTRACT_ADDRESS,
     totalMinted,
@@ -563,6 +654,7 @@ export function useVibeNftContract() {
     ethPriceFormatted: formatEther(ethPriceWei),
     vibePriceFormatted: Number(formatEther(vibePriceWei)).toLocaleString('en-US'),
     contractEthBalance,
+    contractVibeBalance,
     totalOnChainVibeBurned,
     aggregatorRouterAddress,
     hasMinted,
@@ -578,6 +670,10 @@ export function useVibeNftContract() {
     setRouterSuccess,
     isWithdrawingEth,
     withdrawSuccess,
+    isWithdrawingVibe,
+    withdrawVibeSuccess,
+    isSendingVibe,
+    sendVibeSuccess,
     isAdminDirectMinting,
     adminMintSuccess,
     adminMintedTokenId,
@@ -590,6 +686,8 @@ export function useVibeNftContract() {
     executeAdminSwapAndBurn,
     executeSetAggregatorRouter,
     executeWithdrawEth,
+    executeWithdrawVibe,
+    executeSendVibeToWallet,
     executeAdminDirectMint,
     refetch: fetchContractState
   };
