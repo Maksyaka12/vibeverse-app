@@ -44,12 +44,11 @@ export default function NftClubPage() {
     withdrawSuccess,
     isWithdrawingVibe,
     withdrawVibeSuccess,
-    isSendingVibe,
-    sendVibeSuccess,
     contractVibeBalance,
-    isAdminDirectMinting,
-    adminMintSuccess,
-    adminMintedTokenId,
+    isAdminPaidMinting,
+    adminPaidMintSuccess,
+    adminPaidMintedTokenId,
+    adminPaidRecipient,
     txHash,
     lastMintedId,
     errorMessage,
@@ -60,8 +59,8 @@ export default function NftClubPage() {
     executeSetAggregatorRouter,
     executeWithdrawEth,
     executeWithdrawVibe,
-    executeSendVibeToWallet,
-    executeAdminDirectMint
+    executeAdminPaidMintWithEth,
+    executeAdminPaidMintWithVibe
   } = useVibeNftContract();
 
   // Initializer with localStorage cache so the correct live price is rendered in 0ms on page load
@@ -80,8 +79,7 @@ export default function NftClubPage() {
   const [vibePerEthRatio, setVibePerEthRatio] = useState(getInitialVibeRatio);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [adminEthInput, setAdminEthInput] = useState('0.005');
-  const [customVibeRecipient, setCustomVibeRecipient] = useState('');
-  const [customVibeAmount, setCustomVibeAmount] = useState('');
+  const [adminGiveawayRecipient, setAdminGiveawayRecipient] = useState('');
 
   const isAdmin = walletAddress?.toLowerCase() === '0x4c91d3bed372c11795b9ce9a9017dfe447bf050a';
 
@@ -1890,187 +1888,7 @@ export default function NftClubPage() {
               </div>
             )}
 
-            {/* ── $VIBE TRANSFER TO ANY WALLET SECTION ── */}
-            <div style={{
-              marginTop: '16px',
-              paddingTop: '16px',
-              borderTop: '1px solid rgba(255, 215, 0, 0.25)'
-            }}>
-              <div style={{
-                fontFamily: 'var(--vv-pixel)',
-                fontSize: '10px',
-                color: '#ffd700',
-                marginBottom: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <span>💎</span> DIRECT $VIBE TRANSFER TO ANY WALLET
-              </div>
-              <p style={{
-                fontFamily: 'var(--vv-pixel)',
-                fontSize: '7.5px',
-                color: '#a0b5d0',
-                lineHeight: 1.6,
-                marginBottom: '14px',
-                textTransform: 'uppercase'
-              }}>
-                Send any amount of $VIBE directly to another secondary wallet or winner address.
-              </p>
-
-              <div style={{
-                background: 'rgba(2, 11, 26, 0.6)',
-                border: '1px solid rgba(255, 215, 0, 0.3)',
-                borderRadius: '10px',
-                padding: '12px',
-                marginBottom: '12px'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  gap: '8px',
-                  flexDirection: 'column',
-                  marginBottom: '10px'
-                }}>
-                  <div>
-                    <div style={{ fontSize: '7px', color: '#88aacc', fontFamily: 'var(--vv-pixel)', marginBottom: '4px' }}>
-                      DESTINATION WALLET ADDRESS:
-                    </div>
-                    <input
-                      type="text"
-                      value={customVibeRecipient}
-                      onChange={(e) => setCustomVibeRecipient(e.target.value)}
-                      placeholder="0x... (Destination 0x Wallet Address)"
-                      style={{
-                        width: '100%',
-                        background: 'rgba(2, 11, 26, 0.9)',
-                        border: '1px solid #ffd700',
-                        borderRadius: '8px',
-                        color: '#ffd700',
-                        fontFamily: 'var(--vv-pixel)',
-                        fontSize: '8px',
-                        padding: '8px 10px',
-                        outline: 'none',
-                        boxSizing: 'border-box'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <div style={{ fontSize: '7px', color: '#88aacc', fontFamily: 'var(--vv-pixel)', marginBottom: '4px' }}>
-                      $VIBE AMOUNT:
-                    </div>
-                    <div style={{ position: 'relative' }}>
-                      <input
-                        type="number"
-                        min="1"
-                        step="1000"
-                        value={customVibeAmount}
-                        onChange={(e) => setCustomVibeAmount(e.target.value)}
-                        placeholder="1000000"
-                        style={{
-                          width: '100%',
-                          background: 'rgba(2, 11, 26, 0.9)',
-                          border: '1.5px solid #00f5ff',
-                          borderRadius: '8px',
-                          color: '#00f5ff',
-                          fontFamily: 'var(--vv-pixel)',
-                          fontSize: '10px',
-                          padding: '8px 10px',
-                          outline: 'none',
-                          boxSizing: 'border-box'
-                        }}
-                      />
-                      <span style={{
-                        position: 'absolute',
-                        right: '10px',
-                        top: '9px',
-                        fontFamily: 'var(--vv-pixel)',
-                        fontSize: '8px',
-                        color: '#88aacc'
-                      }}>
-                        $VIBE
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Preset Buttons */}
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    {['100000', '500000', '1000000', String(Math.floor(Number(contractVibeBalance || 0)))].map((preset, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setCustomVibeAmount(preset)}
-                        style={{
-                          fontFamily: 'var(--vv-pixel)',
-                          fontSize: '7.5px',
-                          background: 'rgba(0, 245, 255, 0.12)',
-                          border: '1px solid rgba(0, 245, 255, 0.4)',
-                          color: '#00f5ff',
-                          padding: '6px 8px',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontWeight: 900
-                        }}
-                      >
-                        {idx === 3 ? 'MAX' : Number(preset).toLocaleString('en-US')}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => executeSendVibeToWallet(customVibeRecipient, customVibeAmount)}
-                  disabled={isSendingVibe || !customVibeRecipient || !customVibeAmount || parseFloat(customVibeAmount) <= 0}
-                  style={{
-                    width: '100%',
-                    height: '38px',
-                    fontFamily: 'var(--vv-pixel)',
-                    fontSize: '9px',
-                    fontWeight: 900,
-                    background: 'linear-gradient(135deg, #ffd700 0%, #ff6b35 100%)',
-                    border: '2px solid #ffffff',
-                    borderRadius: '8px',
-                    color: '#ffffff',
-                    cursor: (isSendingVibe || !customVibeRecipient || !customVibeAmount || parseFloat(customVibeAmount) <= 0) ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 0 16px rgba(255, 107, 53, 0.35)',
-                    textTransform: 'uppercase'
-                  }}
-                >
-                  {isSendingVibe ? '⏳ SENDING $VIBE ON BASE...' : `🚀 SEND ${Number(customVibeAmount || 0).toLocaleString('en-US')} $VIBE TO WALLET`}
-                </button>
-              </div>
-
-              {/* Status messages for VIBE Transfer */}
-              {sendVibeSuccess && (
-                <div style={{
-                  marginTop: '10px',
-                  padding: '10px',
-                  background: 'rgba(0, 255, 136, 0.15)',
-                  border: '1px solid #00ff88',
-                  borderRadius: '8px',
-                  color: '#00ff88',
-                  fontFamily: 'var(--vv-pixel)',
-                  fontSize: '8px',
-                  lineHeight: 1.6
-                }}>
-                  🎉 {Number(customVibeAmount || 0).toLocaleString('en-US')} $VIBE SENT TO {customVibeRecipient} SUCCESSFULLY!
-                  {adminTxHash && (
-                    <div style={{ marginTop: '4px' }}>
-                      <a
-                        href={`https://basescan.org/tx/${adminTxHash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: '#00f5ff', textDecoration: 'underline' }}
-                      >
-                        VIEW TRANSACTION ON BASESCAN ↗
-                      </a>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* ── ADMIN NFT MINT SECTION ── */}
+            {/* ── ADMIN NFT MINT & DIRECT GIVEAWAY SECTION ── */}
             <div style={{
               marginTop: '20px',
               paddingTop: '16px',
@@ -2085,7 +1903,7 @@ export default function NftClubPage() {
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                <span>🎁</span> ADMIN NFT MINT (FULL PHASE PRICE)
+                <span>🎁</span> ADMIN NFT MINT & DIRECT GIVEAWAY (FULL PHASE PRICE)
               </div>
               <p style={{
                 fontFamily: 'var(--vv-pixel)',
@@ -2095,50 +1913,111 @@ export default function NftClubPage() {
                 marginBottom: '14px',
                 textTransform: 'uppercase'
               }}>
-                Mint NFTs at standard phase price (bypasses 1/1 per-wallet limit for Admin). 80% auto-burns $VIBE and 20% goes into the Community Rewards Pool.
+                Mint NFTs at full phase price and automatically send them directly to a winner address (or your own wallet). 80% burns $VIBE & 20% goes to Rewards Pool.
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <button
-                  onClick={mintWithETH}
-                  disabled={isMintingEth || isMintingVibe || isApprovingVibe}
-                  style={{
-                    height: '42px',
-                    fontFamily: 'var(--vv-pixel)',
-                    fontSize: '8.5px',
-                    fontWeight: 900,
-                    background: 'linear-gradient(135deg, #00f5ff 0%, #0050ff 100%)',
-                    border: '1.5px solid #ffffff',
-                    borderRadius: '10px',
-                    color: '#ffffff',
-                    cursor: (isMintingEth || isMintingVibe || isApprovingVibe) ? 'not-allowed' : 'pointer',
-                    textTransform: 'uppercase',
-                    boxShadow: '0 0 14px rgba(0, 245, 255, 0.3)'
-                  }}
-                >
-                  {isMintingEth ? 'MINTING ON BASE...' : `MINT WITH ETH (${ethPriceFormatted} ETH)`}
-                </button>
+              <div style={{
+                background: 'rgba(2, 11, 26, 0.6)',
+                border: '1px solid rgba(0, 245, 255, 0.3)',
+                borderRadius: '10px',
+                padding: '12px',
+                marginBottom: '12px'
+              }}>
+                <div style={{ marginBottom: '10px' }}>
+                  <div style={{ fontSize: '7px', color: '#88aacc', fontFamily: 'var(--vv-pixel)', marginBottom: '4px' }}>
+                    RECIPIENT ADDRESS (LEAVE EMPTY TO MINT TO YOUR ADMIN WALLET):
+                  </div>
+                  <input
+                    type="text"
+                    value={adminGiveawayRecipient}
+                    onChange={(e) => setAdminGiveawayRecipient(e.target.value)}
+                    placeholder={walletAddress || '0x... (Winner / Destination Address)'}
+                    style={{
+                      width: '100%',
+                      background: 'rgba(2, 11, 26, 0.9)',
+                      border: '1px solid #00f5ff',
+                      borderRadius: '8px',
+                      color: '#00f5ff',
+                      fontFamily: 'var(--vv-pixel)',
+                      fontSize: '8px',
+                      padding: '8px 10px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
 
-                <button
-                  onClick={handleMintWithVibeClick}
-                  disabled={isMintingEth || isMintingVibe || isApprovingVibe}
-                  style={{
-                    height: '42px',
-                    fontFamily: 'var(--vv-pixel)',
-                    fontSize: '8.5px',
-                    fontWeight: 900,
-                    background: 'linear-gradient(135deg, #ffd700 0%, #ff6b35 100%)',
-                    border: '1.5px solid #ffffff',
-                    borderRadius: '10px',
-                    color: '#ffffff',
-                    cursor: (isMintingEth || isMintingVibe || isApprovingVibe) ? 'not-allowed' : 'pointer',
-                    textTransform: 'uppercase',
-                    boxShadow: '0 0 14px rgba(255, 215, 0, 0.3)'
-                  }}
-                >
-                  {isApprovingVibe ? 'APPROVING $VIBE...' : isMintingVibe ? 'MINTING WITH $VIBE...' : `MINT FOR ${formatVibeComma(currentDynamicVibeAmount)}`}
-                </button>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <button
+                    onClick={() => executeAdminPaidMintWithEth(adminGiveawayRecipient)}
+                    disabled={isAdminPaidMinting || isMintingEth || isMintingVibe || isApprovingVibe}
+                    style={{
+                      height: '42px',
+                      fontFamily: 'var(--vv-pixel)',
+                      fontSize: '8px',
+                      fontWeight: 900,
+                      background: 'linear-gradient(135deg, #00f5ff 0%, #0050ff 100%)',
+                      border: '1.5px solid #ffffff',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      cursor: (isAdminPaidMinting || isMintingEth || isMintingVibe || isApprovingVibe) ? 'not-allowed' : 'pointer',
+                      textTransform: 'uppercase',
+                      boxShadow: '0 0 12px rgba(0, 245, 255, 0.25)'
+                    }}
+                  >
+                    {isAdminPaidMinting ? '⏳ MINTING & SENDING...' : `MINT WITH ETH (${ethPriceFormatted} ETH)`}
+                  </button>
+
+                  <button
+                    onClick={() => executeAdminPaidMintWithVibe(adminGiveawayRecipient, parseEther(String(currentDynamicVibeAmount)))}
+                    disabled={isAdminPaidMinting || isMintingEth || isMintingVibe || isApprovingVibe}
+                    style={{
+                      height: '42px',
+                      fontFamily: 'var(--vv-pixel)',
+                      fontSize: '8px',
+                      fontWeight: 900,
+                      background: 'linear-gradient(135deg, #ffd700 0%, #ff6b35 100%)',
+                      border: '1.5px solid #ffffff',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      cursor: (isAdminPaidMinting || isMintingEth || isMintingVibe || isApprovingVibe) ? 'not-allowed' : 'pointer',
+                      textTransform: 'uppercase',
+                      boxShadow: '0 0 12px rgba(255, 215, 0, 0.25)'
+                    }}
+                  >
+                    {isApprovingVibe ? 'APPROVING $VIBE...' : isAdminPaidMinting ? '⏳ MINTING & SENDING...' : `MINT WITH $VIBE`}
+                  </button>
+                </div>
               </div>
+
+              {/* Status messages for Admin Paid Mint */}
+              {adminPaidMintSuccess && (
+                <div style={{
+                  marginTop: '12px',
+                  padding: '10px',
+                  background: 'rgba(0, 255, 136, 0.15)',
+                  border: '1px solid #00ff88',
+                  borderRadius: '8px',
+                  color: '#00ff88',
+                  fontFamily: 'var(--vv-pixel)',
+                  fontSize: '8px',
+                  lineHeight: 1.6
+                }}>
+                  🎉 NFT #{adminPaidMintedTokenId} SUCCESSFULLY MINTED FOR {adminPaidRecipient || 'ADMIN WALLET'}!
+                  {adminTxHash && (
+                    <div style={{ marginTop: '4px' }}>
+                      <a
+                        href={`https://basescan.org/tx/${adminTxHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: '#00f5ff', textDecoration: 'underline' }}
+                      >
+                        VIEW TRANSACTION ON BASESCAN ↗
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -45,6 +45,7 @@ const NFT_ABI = parseAbi([
   'function withdrawETH() external',
   'function withdrawVIBE() external',
   'function withdrawERC20(address token) external',
+  'function transferFrom(address from, address to, uint256 tokenId) external',
   'function executeManualBurn(uint256 vibeAmount) external'
 ]);
 
@@ -645,6 +646,185 @@ export function useVibeNftContract() {
     }
   };
 
+  // 9. Admin Paid Mint with ETH / VIBE & Direct Forwarding to Recipient
+  const [isAdminPaidMinting, setIsAdminPaidMinting] = useState(false);
+  const [adminPaidMintSuccess, setAdminPaidMintSuccess] = useState(false);
+  const [adminPaidMintedTokenId, setAdminPaidMintedTokenId] = useState(null);
+  const [adminPaidRecipient, setAdminPaidRecipient] = useState('');
+
+  const executeAdminPaidMintWithEth = async (recipientAddress) => {
+    if (!authenticated || !walletAddress) {
+      login();
+      return;
+    }
+    setErrorMessage('');
+    setAdminPaidMintSuccess(false);
+    setIsAdminPaidMinting(true);
+    setAdminTxHash('');
+
+    try {
+      const targetRecipient = (recipientAddress && recipientAddress.trim().length === 42 && recipientAddress.trim().startsWith('0x'))
+        ? recipientAddress.trim()
+        : null;
+
+      const ethAmountWei = ethPriceWei;
+      const swapData = await getKyberSwapCalldata(ethAmountWei);
+
+      let dataHex;
+      if (swapData && swapData !== '0x' && aggregatorRouterAddress) {
+        dataHex = encodeFunctionData({
+          abi: NFT_ABI,
+          functionName: 'mintWithETHAndSwap',
+          args: [swapData]
+        });
+      } else {
+        dataHex = encodeFunctionData({
+          abi: NFT_ABI,
+          functionName: 'mintWithETH'
+        });
+      }
+
+      const hash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, ethAmountWei, withBuilderCode(dataHex), '0x7A120');
+      setAdminTxHash(hash);
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== 'success') {
+        throw new Error('Mint with ETH reverted on Base');
+      }
+
+      let mintedId = null;
+      if (receipt.logs) {
+        const transferLog = receipt.logs.find((log) =>
+          log.address?.toLowerCase() === NFT_CONTRACT_ADDRESS.toLowerCase() &&
+          log.topics && log.topics[0] === '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+        );
+        if (transferLog && transferLog.topics && transferLog.topics[3]) {
+          mintedId = Number(BigInt(transferLog.topics[3]));
+        }
+      }
+      if (!mintedId) {
+        mintedId = (totalMinted || 0) + 1;
+      }
+
+      setAdminPaidMintedTokenId(mintedId);
+      setLastMintedId(mintedId);
+
+      if (targetRecipient && targetRecipient.toLowerCase() !== walletAddress.toLowerCase()) {
+        setAdminPaidRecipient(targetRecipient);
+        const transferDataHex = encodeFunctionData({
+          abi: NFT_ABI,
+          functionName: 'transferFrom',
+          args: [walletAddress, targetRecipient, BigInt(mintedId)]
+        });
+        const transferHash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, BigInt(0), withBuilderCode(transferDataHex), '0x7A120');
+        setAdminTxHash(transferHash);
+        await publicClient.waitForTransactionReceipt({ hash: transferHash });
+      } else {
+        setAdminPaidRecipient(walletAddress);
+      }
+
+      setAdminPaidMintSuccess(true);
+      await fetchContractState();
+    } catch (e) {
+      console.error('Admin Paid Mint with ETH failed:', e);
+      setErrorMessage(e?.shortMessage || e?.message || 'Admin Paid Mint with ETH failed');
+    } finally {
+      setIsAdminPaidMinting(false);
+    }
+  };
+
+  const executeAdminPaidMintWithVibe = async (recipientAddress, customVibeAmountWei) => {
+    if (!authenticated || !walletAddress) {
+      login();
+      return;
+    }
+    setErrorMessage('');
+    setAdminPaidMintSuccess(false);
+    setIsAdminPaidMinting(true);
+    setAdminTxHash('');
+
+    const amountToSend = customVibeAmountWei || vibePriceWei;
+
+    try {
+      const targetRecipient = (recipientAddress && recipientAddress.trim().length === 42 && recipientAddress.trim().startsWith('0x'))
+        ? recipientAddress.trim()
+        : null;
+
+      const currentAllowance = await publicClient.readContract({
+        address: VIBE_TOKEN_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: 'allowance',
+        args: [walletAddress, NFT_CONTRACT_ADDRESS]
+      });
+
+      if (currentAllowance < amountToSend) {
+        setIsApprovingVibe(true);
+        const approveData = encodeFunctionData({
+          abi: ERC20_ABI,
+          functionName: 'approve',
+          args: [NFT_CONTRACT_ADDRESS, BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639935')]
+        });
+        const approveHash = await sendWeb3Transaction(VIBE_TOKEN_ADDRESS, BigInt(0), withBuilderCode(approveData));
+        await publicClient.waitForTransactionReceipt({ hash: approveHash });
+        setIsApprovingVibe(false);
+      }
+
+      const mintData = encodeFunctionData({
+        abi: NFT_ABI,
+        functionName: 'mintWithVIBE',
+        args: [amountToSend]
+      });
+
+      const hash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, BigInt(0), withBuilderCode(mintData));
+      setAdminTxHash(hash);
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== 'success') {
+        throw new Error('Mint with VIBE reverted on Base');
+      }
+
+      let mintedId = null;
+      if (receipt.logs) {
+        const transferLog = receipt.logs.find((log) =>
+          log.address?.toLowerCase() === NFT_CONTRACT_ADDRESS.toLowerCase() &&
+          log.topics && log.topics[0] === '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+        );
+        if (transferLog && transferLog.topics && transferLog.topics[3]) {
+          mintedId = Number(BigInt(transferLog.topics[3]));
+        }
+      }
+      if (!mintedId) {
+        mintedId = (totalMinted || 0) + 1;
+      }
+
+      setAdminPaidMintedTokenId(mintedId);
+      setLastMintedId(mintedId);
+
+      if (targetRecipient && targetRecipient.toLowerCase() !== walletAddress.toLowerCase()) {
+        setAdminPaidRecipient(targetRecipient);
+        const transferDataHex = encodeFunctionData({
+          abi: NFT_ABI,
+          functionName: 'transferFrom',
+          args: [walletAddress, targetRecipient, BigInt(mintedId)]
+        });
+        const transferHash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, BigInt(0), withBuilderCode(transferDataHex), '0x7A120');
+        setAdminTxHash(transferHash);
+        await publicClient.waitForTransactionReceipt({ hash: transferHash });
+      } else {
+        setAdminPaidRecipient(walletAddress);
+      }
+
+      setAdminPaidMintSuccess(true);
+      await fetchContractState();
+    } catch (e) {
+      console.error('Admin Paid Mint with VIBE failed:', e);
+      setErrorMessage(e?.shortMessage || e?.message || 'Admin Paid Mint with VIBE failed');
+    } finally {
+      setIsApprovingVibe(false);
+      setIsAdminPaidMinting(false);
+    }
+  };
+
   return {
     contractAddress: NFT_CONTRACT_ADDRESS,
     totalMinted,
@@ -674,6 +854,10 @@ export function useVibeNftContract() {
     withdrawVibeSuccess,
     isSendingVibe,
     sendVibeSuccess,
+    isAdminPaidMinting,
+    adminPaidMintSuccess,
+    adminPaidMintedTokenId,
+    adminPaidRecipient,
     isAdminDirectMinting,
     adminMintSuccess,
     adminMintedTokenId,
@@ -688,6 +872,8 @@ export function useVibeNftContract() {
     executeWithdrawEth,
     executeWithdrawVibe,
     executeSendVibeToWallet,
+    executeAdminPaidMintWithEth,
+    executeAdminPaidMintWithVibe,
     executeAdminDirectMint,
     refetch: fetchContractState
   };
