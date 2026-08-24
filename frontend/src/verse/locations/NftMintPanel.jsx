@@ -34,10 +34,10 @@ export default function NftMintPanel({ player }) {
   }, []);
 
   const phases = [
-    { phase: 'Phase 1', count: '103 NFT', price: `${ethPriceFormatted} ETH`, vibe: `${vibePriceFormatted} VIBE`, active: true, done: false },
-    { phase: 'Phase 2', count: '100 NFT', price: '0.015 ETH', vibe: '3,000,000 VIBE', active: false, done: false },
-    { phase: 'Phase 3', count: '100 NFT', price: '0.05 ETH', vibe: '10,000,000 VIBE', active: false, done: false },
-    { phase: 'Phase 4', count: '30 NFT', price: '0.1 ETH', vibe: '20,000,000 VIBE', active: false, done: false },
+    { phase: 'Phase 1', count: '103 NFT', price: `${ethPriceFormatted} ETH`, vibe: `${vibePriceFormatted} VIBE`, active: currentPhase === 1, done: currentPhase > 1 || totalMinted >= 103 },
+    { phase: 'Phase 2', count: '100 NFT', price: '0.015 ETH', vibe: '3,000,000 VIBE', active: currentPhase === 2, done: currentPhase > 2 || totalMinted >= 203 },
+    { phase: 'Phase 3', count: '100 NFT', price: '0.05 ETH', vibe: '10,000,000 VIBE', active: currentPhase === 3, done: currentPhase > 3 || totalMinted >= 303 },
+    { phase: 'Phase 4', count: '30 NFT', price: '0.1 ETH', vibe: '20,000,000 VIBE', active: currentPhase === 4, done: false },
   ];
 
   return (
@@ -304,7 +304,7 @@ export default function NftMintPanel({ player }) {
                 {p.phase} <span style={{ color: '#88aacc', fontSize: '10px', marginLeft: '6px' }}>({p.count})</span>
               </div>
               <div style={{ fontSize: '11px', fontWeight: 900, color: p.done ? '#00ff88' : p.active ? '#ffd700' : '#888888', letterSpacing: '0.5px' }}>
-                {p.price} / {p.vibe}
+                {p.done ? `${p.phase.toUpperCase()} COMPLETED` : `${p.price} / ${p.vibe}`}
               </div>
             </div>
           ))}
@@ -329,7 +329,7 @@ export default function NftMintPanel({ player }) {
             <span>🔥</span> 80% BURN / 20% POOL
           </div>
           <div style={{ fontSize: '9.5px', color: '#ccc', lineHeight: 1.5 }}>
-            80% of all ETH & $VIBE from mints is permanently burned to 0x...dEaD, 20% funds the VibeVerse rewards pool.
+            80% of all ETH & $VIBE from mints is permanently burned to 0x...dEaD, 20% funds the Community rewards pool.
           </div>
         </div>
 
@@ -345,7 +345,7 @@ export default function NftMintPanel({ player }) {
             <span>👑</span> GENESIS PRIVILEGES
           </div>
           <div style={{ fontSize: '9.5px', color: '#ccc', lineHeight: 1.5 }}>
-            Vibe Club members receive lifetime regular dividends, VIP roles, and premier status across the B20 ecosystem.
+            Vibe Club members receive lifetime royalties distributed every 10-day epoch (15% of Community Rewards Pool), VIP roles, and premier status.
           </div>
         </div>
 

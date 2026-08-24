@@ -199,9 +199,9 @@ export default function NftClubPage() {
 
   // 4 Mint Phases definition
   const phases = [
-    { phase: 'PHASE 1', count: '103 NFT', price: '0.005 ETH', vibePrice: formatVibeComma(Math.floor(0.005 * vibePerEthRatio)), active: currentPhase === 1, done: currentPhase > 1 },
-    { phase: 'PHASE 2', count: '100 NFT', price: '0.015 ETH', vibePrice: formatVibeComma(Math.floor(0.015 * vibePerEthRatio)), active: currentPhase === 2, done: currentPhase > 2 },
-    { phase: 'PHASE 3', count: '100 NFT', price: '0.05 ETH', vibePrice: formatVibeComma(Math.floor(0.05 * vibePerEthRatio)), active: currentPhase === 3, done: currentPhase > 3 },
+    { phase: 'PHASE 1', count: '103 NFT', price: '0.005 ETH', vibePrice: formatVibeComma(Math.floor(0.005 * vibePerEthRatio)), active: currentPhase === 1, done: currentPhase > 1 || totalMinted >= 103 },
+    { phase: 'PHASE 2', count: '100 NFT', price: '0.015 ETH', vibePrice: formatVibeComma(Math.floor(0.015 * vibePerEthRatio)), active: currentPhase === 2, done: currentPhase > 2 || totalMinted >= 203 },
+    { phase: 'PHASE 3', count: '100 NFT', price: '0.05 ETH', vibePrice: formatVibeComma(Math.floor(0.05 * vibePerEthRatio)), active: currentPhase === 3, done: currentPhase > 3 || totalMinted >= 303 },
     { phase: 'PHASE 4', count: '30 NFT', price: '0.1 ETH', vibePrice: formatVibeComma(Math.floor(0.1 * vibePerEthRatio)), active: currentPhase === 4, done: false },
   ];
 
@@ -1263,9 +1263,15 @@ export default function NftClubPage() {
                     whiteSpace: 'nowrap',
                     flexShrink: 0
                   }}>
-                    <span style={{ color: '#00f5ff' }}>{p.price}</span>
-                    <span className="vv-phase-vibe-part" style={{ color: '#88aacc' }}>/</span>
-                    <span className="vv-phase-vibe-part" style={{ color: '#ffd700' }}>{p.vibePrice}</span>
+                    {p.done ? (
+                      <span style={{ color: '#ffd700', letterSpacing: '0.4px' }}>{p.phase} COMPLETED</span>
+                    ) : (
+                      <>
+                        <span style={{ color: '#00f5ff' }}>{p.price}</span>
+                        <span className="vv-phase-vibe-part" style={{ color: '#88aacc' }}>/</span>
+                        <span className="vv-phase-vibe-part" style={{ color: '#ffd700' }}>{p.vibePrice}</span>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -1335,7 +1341,7 @@ export default function NftClubPage() {
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
                   <span style={{ color: '#00ff88', fontSize: '9px', flexShrink: 0 }}>•</span>
-                  <span>THE REMAINING 20% GOES DIRECTLY INTO THE VIBE VERSE REWARDS POOL.</span>
+                  <span>THE REMAINING 20% GOES DIRECTLY INTO THE COMMUNITY REWARDS POOL.</span>
                 </div>
               </div>
             </div>
@@ -1379,7 +1385,7 @@ export default function NftClubPage() {
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
                   <span style={{ color: '#ffd700', fontSize: '9px', flexShrink: 0 }}>•</span>
-                  <span>LIFETIME $VIBE DIVIDENDS FOR CLUB MEMBERS (LOCKED IN $VIBE TOKENOMICS)</span>
+                  <span>LIFETIME $VIBE ROYALTIES DISTRIBUTED TO NFT HOLDERS IN 10-DAY EPOCHS (15% OF REWARDS POOL)</span>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
