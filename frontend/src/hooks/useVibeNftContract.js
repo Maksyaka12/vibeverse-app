@@ -4,6 +4,7 @@ import { createPublicClient, http, parseEther, formatEther, encodeFunctionData, 
 import { base } from 'viem/chains';
 
 export const NFT_CONTRACT_ADDRESS = '0x9E92307Dbec2d0aE4BBF14cA93E1cA00edC4b886';
+export const OPENSEA_COLLECTION_URL = 'https://opensea.io/collection/vibeclubnft';
 export const VIBE_TOKEN_ADDRESS = '0xb200000000000000000000df24ecb8bf51100a01';
 export const ADMIN_ADDRESS = '0x4C91d3beD372c11795b9cE9A9017Dfe447Bf050A';
 export const BUILDER_CODE = 'bc_wsbqqe2u';

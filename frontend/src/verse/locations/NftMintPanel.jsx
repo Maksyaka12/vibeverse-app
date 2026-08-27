@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useUserBalances } from '../hooks/useUserBalances';
-import { useVibeNftContract, NFT_CONTRACT_ADDRESS } from '../../hooks/useVibeNftContract';
+import { useVibeNftContract, NFT_CONTRACT_ADDRESS, OPENSEA_COLLECTION_URL } from '../../hooks/useVibeNftContract';
 
 export default function NftMintPanel({ player }) {
   const { user, authenticated, login } = usePrivy();
@@ -115,7 +115,7 @@ export default function NftMintPanel({ player }) {
             </div>
 
             <a
-              href={`https://opensea.io/assets/base/${NFT_CONTRACT_ADDRESS}`}
+              href={OPENSEA_COLLECTION_URL}
               target="_blank"
               rel="noopener noreferrer"
               style={{
