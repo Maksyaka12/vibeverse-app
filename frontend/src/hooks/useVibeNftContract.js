@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { createPublicClient, http, parseEther, formatEther, encodeFunctionData, parseAbi } from 'viem';
+import { createPublicClient, http, fallback, parseEther, formatEther, encodeFunctionData, parseAbi } from 'viem';
 import { base } from 'viem/chains';
 
 export const NFT_CONTRACT_ADDRESS = '0x9E92307Dbec2d0aE4BBF14cA93E1cA00edC4b886';
@@ -16,9 +16,16 @@ const withBuilderCode = (dataHex) => {
   return `${clean}${BUILDER_CODE_HEX}`;
 };
 
+const RPC_TRANSPORTS = fallback([
+  http('https://mainnet.base.org'),
+  http('https://base.llamarpc.com'),
+  http('https://1rpc.io/base'),
+  http('https://base-mainnet.public.blastapi.io')
+], { rank: false });
+
 const publicClient = createPublicClient({
   chain: base,
-  transport: http('https://base-mainnet.public.blastapi.io')
+  transport: RPC_TRANSPORTS
 });
 
 const NFT_ABI = parseAbi([
