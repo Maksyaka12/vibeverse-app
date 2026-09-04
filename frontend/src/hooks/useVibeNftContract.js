@@ -7,9 +7,9 @@ export const NFT_CONTRACT_ADDRESS = '0x9E92307Dbec2d0aE4BBF14cA93E1cA00edC4b886'
 export const OPENSEA_COLLECTION_URL = 'https://opensea.io/collection/vibeclubnft';
 export const VIBE_TOKEN_ADDRESS = '0xb200000000000000000000df24ecb8bf51100a01';
 export const ADMIN_ADDRESS = '0x4C91d3beD372c11795b9cE9A9017Dfe447Bf050A';
-export const BUILDER_CODE = 'bc_zo20mc2e';
-// Official ERC-8021 Data Suffix for Base Builder Code bc_zo20mc2e:
-export const BUILDER_CODE_HEX = '62635f7a6f32306d6332650b00802180218021802180218021802180218021';
+export const BUILDER_CODE = 'bc_wsbqqe2u';
+// Official ERC-8021 Data Suffix for Base Builder Code bc_wsbqqe2u:
+export const BUILDER_CODE_HEX = '62635f77736271716532750b00802180218021802180218021802180218021';
 
 const withBuilderCode = (dataHex) => {
   const clean = dataHex.startsWith('0x') ? dataHex : `0x${dataHex}`;
