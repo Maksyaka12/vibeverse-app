@@ -4,9 +4,9 @@ import { parseUnits, formatUnits, createPublicClient, http, encodeFunctionData }
 import { base } from 'viem/chains';
 import { useUserBalances } from '../hooks/useUserBalances';
 
-const BUILDER_CODE = 'bc_wsbqqe2u';
-// Official ERC-8021 Data Suffix for Base Builder Code bc_wsbqqe2u:
-const BUILDER_CODE_HEX = '62635f77736271716532750b0080218021802180218021802180218021';
+const BUILDER_CODE = 'bc_zo20mc2e';
+// Official ERC-8021 Data Suffix for Base Builder Code bc_zo20mc2e:
+const BUILDER_CODE_HEX = '62635f7a6f32306d6332650b00802180218021802180218021802180218021';
 
 const ETH_ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const KYBER_ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
