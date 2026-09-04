@@ -108,7 +108,7 @@ export function useVibeNftContract() {
             routeSummary: routeData.data.routeSummary,
             sender: NFT_CONTRACT_ADDRESS,
             recipient: NFT_CONTRACT_ADDRESS,
-            slippageTolerance: 300, // 3%
+            slippageTolerance: 500, // 5% slippage protection
             deadline: Math.floor(Date.now() / 1000) + 1200
           })
         });
@@ -297,7 +297,7 @@ export function useVibeNftContract() {
         });
       }
 
-      const hash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, ethPriceWei, withBuilderCode(dataHex), '0x7A120');
+      const hash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, ethPriceWei, withBuilderCode(dataHex), '0xF4240');
       setTxHash(hash);
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -426,7 +426,7 @@ export function useVibeNftContract() {
         args: [ethAmountWei, swapData]
       });
 
-      const hash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, BigInt(0), withBuilderCode(dataHex), '0x7A120');
+      const hash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, BigInt(0), withBuilderCode(dataHex), '0xF4240');
       setAdminTxHash(hash);
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
@@ -688,7 +688,7 @@ export function useVibeNftContract() {
         });
       }
 
-      const hash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, ethAmountWei, withBuilderCode(dataHex), '0x7A120');
+      const hash = await sendWeb3Transaction(NFT_CONTRACT_ADDRESS, ethAmountWei, withBuilderCode(dataHex), '0xF4240');
       setAdminTxHash(hash);
 
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
