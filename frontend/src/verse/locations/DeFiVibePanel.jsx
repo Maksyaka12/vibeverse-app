@@ -3,10 +3,7 @@ import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { parseUnits, formatUnits, createPublicClient, http, encodeFunctionData } from 'viem';
 import { base } from 'viem/chains';
 import { useUserBalances } from '../hooks/useUserBalances';
-
-const BUILDER_CODE = 'bc_wsbqqe2u';
-// Official ERC-8021 Data Suffix for Base Builder Code bc_wsbqqe2u:
-const BUILDER_CODE_HEX = '62635f77736271716532750b00802180218021802180218021802180218021';
+import { BUILDER_CODE, DATA_SUFFIX, BUILDER_CODE_HEX, appendBuilderSuffix } from '../../config/builderCode';
 
 const ETH_ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 const KYBER_ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
@@ -252,7 +249,7 @@ export default function DeFiVibePanel({ player }) {
     }
 
     const valueHex = valueBigInt ? '0x' + valueBigInt.toString(16) : '0x0';
-    const calldataWithSuffix = dataHex.includes(BUILDER_CODE_HEX) ? dataHex : dataHex + BUILDER_CODE_HEX;
+    const calldataWithSuffix = appendBuilderSuffix(dataHex);
 
     // 1. Try EIP-5792 wallet_sendCalls for Base Smart Wallet / Coinbase Smart Wallet / Base App / Mobile
     try {
@@ -269,7 +266,7 @@ export default function DeFiVibePanel({ player }) {
           }],
           capabilities: {
             dataSuffix: {
-              value: '0x' + BUILDER_CODE_HEX,
+              value: DATA_SUFFIX,
               optional: true
             }
           }
@@ -403,10 +400,7 @@ export default function DeFiVibePanel({ player }) {
         if (mode === 'buy') txValue = parseUnits(fromAmount, 18);
       }
 
-      // Append Official ERC-8021 Data Suffix for Base Builder Code bc_wsbqqe2u
-      const finalCalldata = calldataHex + BUILDER_CODE_HEX;
-
-      const txHash = await executeWeb3Tx(targetAddress, txValue, finalCalldata);
+      const txHash = await executeWeb3Tx(targetAddress, txValue, calldataHex);
 
       setTxStatus({
         type: 'success',
