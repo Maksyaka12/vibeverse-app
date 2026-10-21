@@ -1,0 +1,20 @@
+{
+  "name": "Novice Staker",
+  "description": "Vibe Hub soulbound achievement. Deposited $VIBE into 1 official staking vault. Verified onchain by the achievements contract and not transferable.",
+  "image": "https://vibeverse.dog/achievements/novice-staker.jpg",
+  "external_url": "https://vibehome.dog/profile",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Dog Staker"
+    },
+    {
+      "trait_type": "Condition",
+      "value": "Deposited $VIBE into 1 official staking vault"
+    },
+    {
+      "trait_type": "Soulbound",
+      "value": "Yes"
+    }
+  ]
+}

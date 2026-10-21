@@ -1,0 +1,20 @@
+{
+  "name": "Rich Dog",
+  "description": "Vibe Hub soulbound achievement. Staked at least 5,000,000 $VIBE in one official staking vault. Verified onchain by the achievements contract and not transferable.",
+  "image": "https://vibeverse.dog/achievements/rich-dog.jpg",
+  "external_url": "https://vibehome.dog/profile",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Dog Staker"
+    },
+    {
+      "trait_type": "Condition",
+      "value": "Staked at least 5,000,000 $VIBE in one official staking vault"
+    },
+    {
+      "trait_type": "Soulbound",
+      "value": "Yes"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "Ultra-Active Dog",
+  "description": "Vibe Hub soulbound achievement. Longest daily check-in streak of 30 days. Verified onchain by the achievements contract and not transferable.",
+  "image": "https://vibeverse.dog/achievements/ultra-active-dog.jpg",
+  "external_url": "https://vibehome.dog/profile",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Active Dog"
+    },
+    {
+      "trait_type": "Condition",
+      "value": "Longest daily check-in streak of 30 days"
+    },
+    {
+      "trait_type": "Soulbound",
+      "value": "Yes"
+    }
+  ]
+}

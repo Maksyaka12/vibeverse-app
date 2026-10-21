@@ -1,0 +1,20 @@
+{
+  "name": "Confident Banker",
+  "description": "Vibe Hub soulbound achievement. Deposited $VIBE into 3 official staking vaults. Verified onchain by the achievements contract and not transferable.",
+  "image": "https://vibeverse.dog/achievements/confident-banker.jpg",
+  "external_url": "https://vibehome.dog/profile",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Dog Staker"
+    },
+    {
+      "trait_type": "Condition",
+      "value": "Deposited $VIBE into 3 official staking vaults"
+    },
+    {
+      "trait_type": "Soulbound",
+      "value": "Yes"
+    }
+  ]
+}

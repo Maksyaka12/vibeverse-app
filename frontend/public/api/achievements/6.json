@@ -1,0 +1,20 @@
+{
+  "name": "Wolf of Wall St",
+  "description": "Vibe Hub soulbound achievement. Deposited $VIBE into 5 official staking vaults. Verified onchain by the achievements contract and not transferable.",
+  "image": "https://vibeverse.dog/achievements/wolf-of-wall-st.jpg",
+  "external_url": "https://vibehome.dog/profile",
+  "attributes": [
+    {
+      "trait_type": "Category",
+      "value": "Dog Staker"
+    },
+    {
+      "trait_type": "Condition",
+      "value": "Deposited $VIBE into 5 official staking vaults"
+    },
+    {
+      "trait_type": "Soulbound",
+      "value": "Yes"
+    }
+  ]
+}
